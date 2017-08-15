@@ -1,0 +1,2 @@
+[report]
+omit = */jsg/_compat.py
