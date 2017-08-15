@@ -102,4 +102,4 @@ Which in turn will validate the following json data -- this can be verified usin
 Please feel free to make contributions and log bugs via Github's issue tracker system.  To speed up integration of any pull requests please make sure changes pass the basic `tox` and `py.test` based tests and complies with the PEP8 spec.  Finally, please supply test cases to support your bugs and fixes.
 
 ## License
- This software is licensed under the [MIT License](./License).
+ This software is licensed under the [MIT License](./LICENSE).
