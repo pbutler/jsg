@@ -30,12 +30,10 @@ class File(Entry):
     content = jsg.StringField(required=True)
 
 @schema.add()
-class Contents(jsg.CompoundDocument):
-    one_of = ["File", "Directory"]
-
-@schema.add()
 class Directory(Entry):
-    content = jsg.ArrayField(jsg.DocumentField("Contents", as_ref=False), required=True)
+    content = jsg.ArrayField(jsg.CompoundField(one_of=[
+            jsg.DocumentField("Directory", as_ref=True),
+            jsg.DocumentField("File", as_ref=True)]), required=True)
     
 schema.render("Directory")
 ```

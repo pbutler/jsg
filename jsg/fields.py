@@ -355,7 +355,8 @@ class DocumentField(BaseField):
     """Document Ref Field allows referencing subdocuments as fields of other documents"""
 
     def __init__(self, document, as_ref=False, **kwargs):
-        """TODO: to be defined1.
+        """Initializes the field, referencing document as either inline (as_ref is false)
+        or a JSON reference (as_ref is True)
 
         :param document: Either a string or a Document subclass
         :param as_ref: Should document be referenced inline or as a JSON pointer reference
@@ -375,3 +376,39 @@ class DocumentField(BaseField):
         else:
             cls = schema.resolve(self._document)
             return cls.render(schema, roles)
+
+
+class CompoundField(BaseField):
+
+    """Compound Field that implements oneOf/anyOf/allOf referencing"""
+
+    def __init__(self, one_of=None, any_of=None, all_of=None, **kwargs):
+        """Initializes the Field, referencing sub documents usine a combination of the
+        one_of, any_of, and all_of relationships.
+
+        :param one_of: a list of sub fields that which must match one and only one schema
+        :param any_of: a list of sub fields that which must match at least one schema
+        :param all_of: a list of sub fields that which must match all schemas
+
+        """
+        self._one_of = one_of or []
+        self._any_of = any_of or []
+        self._all_of = all_of or []
+
+        super(CompoundField, self).__init__(**kwargs)
+
+    def render(self, schema, roles):
+        ctx = OrderedDict()
+        deps = set()
+        for compound_type in ("one_of", "all_of", "any_of"):
+            name = compound_type.replace("_o", "O")
+            sub_fields = getattr(self, "_" + compound_type)
+            if not sub_fields:
+                continue
+
+            ctx[name] = []
+            for field in sub_fields:
+                rendered, new_deps = field.render(schema, roles)
+                deps.update(new_deps)
+                ctx[name] += [rendered]
+        return ctx, deps

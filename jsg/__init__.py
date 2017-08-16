@@ -9,7 +9,7 @@ from collections import OrderedDict
 import six
 from .documents import Document, CompoundDocument  # NOQA
 from .fields import BaseField, IntField, NumberField, StringField  # NOQA
-from .fields import DictField, ArrayField, URIField, DocumentField  # NOQA
+from .fields import DictField, ArrayField, URIField, DocumentField, CompoundField  # NOQA
 from .fields import EmailField, HostnameField, IPv4Field, IPv6Field, DateTimeField  # NOQA
 
 __author__ = 'Patrick Butler'
