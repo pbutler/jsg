@@ -25,7 +25,7 @@ class MetaDocument(six.with_metaclass(Prepareable, type)):
         super(MetaDocument, mcs).__init__(name, bases, nmspc)
 
     def __new__(mcs, mcs_name, bases, attrs):
-        attrs["_fields"] = {}
+        attrs["_fields"] = OrderedDict()
         for base in bases:
             for name, attr in six.iteritems(base._fields):
                 attrs["_fields"][name] = attr
