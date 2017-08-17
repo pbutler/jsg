@@ -4,6 +4,13 @@ from collections import OrderedDict
 import six
 from .utils import check_role
 
+_HAS_ATTR = False
+try:
+    import attr  # NOQA
+    _HAS_ATTR = True
+except ImportError:
+    pass
+
 
 def is_number(num):
     return isinstance(num, (int, float))
@@ -50,10 +57,27 @@ class BaseField(object):
             self._attrs["enum"] = enum
 
     def render(self, schema, roles):
+        """TODO: Docstring for render.
+
+        :param schema: the schema object which this is contained in
+        :param roles: This can be either a set, list, tuple represnting multiple roles
+        this is valid in or a string representing the singular role it is valid in
+        :returns: a dictionar that represents this portion of the schema and a set of
+        subschema references that need to be defined in the overall schema for it to be
+        valid
+
+        """
         check_role(self._roles, roles)
         ctx = OrderedDict()
         ctx.update(self._attrs)
         return ctx, set()
+
+    def _attr_(self):
+        kwargs = {}
+        if "default" in self._attrs:
+            kwargs["default"] = self._attrs["default"]
+
+        return kwargs
 
 
 class NumberField(BaseField):
@@ -66,9 +90,9 @@ class NumberField(BaseField):
 
         :param multiple_of: number must be multiple of this number
         :param minimum: minimum value
-        :param exclusive_minimum: should minimum be inclusive or exclusive
+        :param exclusive_minimum: should minimum be inclusive (False) or exclusive (True)
         :param maximum: maximum value
-        :param exclusive_maximum: should maximum be inclusive or exclusive
+        :param exclusive_maximum: should maximum be inclusive (False) or exclusive (True)
 
         """
         super(NumberField, self).__init__(**kwargs)
@@ -96,6 +120,11 @@ class NumberField(BaseField):
         # Noneset(kwargs.keys())
         self._attrs["type"] = "number"
 
+    def _attr_(self):
+        kwargs = super(NumberField, self)._attr_()
+        kwargs["validator"] = [attr.validators.instance_of((int, float))]
+        return kwargs
+
 
 class IntField(NumberField):
 
@@ -113,6 +142,11 @@ class IntField(NumberField):
         """
         super(IntField, self).__init__(**kwargs)
         self._attrs["type"] = "integer"
+
+    def _attr_(self):
+        kwargs = super(IntField, self)._attr_()
+        kwargs["validator"] = [attr.validators.instance_of(int)]
+        return kwargs
 
 
 class StringField(BaseField):
@@ -149,6 +183,11 @@ class StringField(BaseField):
             if not isinstance(max_length, int):
                 raise TypeError("max_length must be an int")
             self._attrs["maxLength"] = max_length
+
+    def _attr_(self):
+        kwargs = super(StringField, self)._attr_()
+        kwargs["validator"] = [attr.validators.instance_of(six.string_types)]
+        return kwargs
 
 
 class DateTimeField(StringField):
@@ -279,6 +318,11 @@ class ArrayField(BaseField):
                 deps.update(new_deps)
         return ctx, deps
 
+    def _attr_(self):
+        kwargs = super(ArrayField, self)._attr_()
+        kwargs["validator"] = [attr.validators.instance_of((list, tuple))]
+        return kwargs
+
 
 class DictField(BaseField):
 
@@ -348,6 +392,11 @@ class DictField(BaseField):
                 ctx["additionalProperties"] = add_props
                 deps.update(new_deps)
         return ctx, deps
+
+    def _attr_(self):
+        kwargs = super(DictField, self)._attr_()
+        kwargs["validator"] = [attr.validators.instance_of(dict)]
+        return kwargs
 
 
 class DocumentField(BaseField):

@@ -11,6 +11,14 @@ from .utils import check_role, NotInRole
 from .fields import BaseField
 from ._compat import Prepareable
 
+_HAS_ATTR = False
+try:
+    import attr  # NOQA
+    _HAS_ATTR = True
+except ImportError:
+    pass
+
+
 __author__ = 'Patrick Butler'
 __email__ = 'pbutler@killertux.org'
 __version__ = '0.0.1'
@@ -27,16 +35,16 @@ class MetaDocument(six.with_metaclass(Prepareable, type)):
     def __new__(mcs, mcs_name, bases, attrs):
         attrs["_fields"] = OrderedDict()
         for base in bases:
-            for name, attr in six.iteritems(base._fields):
-                attrs["_fields"][name] = attr
+            for name, field in six.iteritems(base._fields):
+                attrs["_fields"][name] = field
 
-        for name, attr in six.iteritems(attrs):
-            if not isinstance(attr, BaseField):
+        for name, field in six.iteritems(attrs):
+            if not isinstance(field, BaseField):
                 continue
-            attrs["_fields"][name] = attr
+            attrs["_fields"][name] = field
 
-        attrs = {name: attr for name, attr in six.iteritems(attrs)
-                 if not isinstance(attr, BaseField)}
+        attrs = {name: field for name, field in six.iteritems(attrs)
+                 if not isinstance(field, BaseField)}
 
         klass = type.__new__(mcs, mcs_name, bases, attrs)
         return klass
@@ -87,11 +95,13 @@ class Document(six.with_metaclass(MetaDocument)):
             ctx["required"] = required
         return ctx, deps
 
-    # @classmethod
-    # def get_name(cls):
-    #     if cls._schema is None:
-    #         raise ValueError("document not associated with schema")
-    #     return cls._schema._rev_registry[cls]
+    @classmethod
+    def get_class(cls):
+        attrs = {}
+        for fname, field in six.iteritems(cls._fields):
+            attrs[fname] = attr.ib(**field._attr_())
+        C = attr.make_class(cls.__name__, attrs, slots=True)
+        return C
 
 
 class CompoundDocument(Document):

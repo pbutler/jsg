@@ -12,6 +12,14 @@ from .fields import BaseField, IntField, NumberField, StringField  # NOQA
 from .fields import DictField, ArrayField, URIField, DocumentField, CompoundField  # NOQA
 from .fields import EmailField, HostnameField, IPv4Field, IPv6Field, DateTimeField  # NOQA
 
+_HAS_ATTR = False
+try:
+    import attr  # NOQA
+    _HAS_ATTR = True
+except ImportError:
+    pass
+
+
 __author__ = 'Patrick Butler'
 __email__ = 'pbutler@killertux.org'
 __version__ = '0.0.1'
