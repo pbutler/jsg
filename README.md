@@ -1,4 +1,6 @@
 # jsg
+[![Build Status](https://travis-ci.org/pbutler/jsg.svg?branch=master)](https://travis-ci.org/pbutler/jsg)
+
 Python based JSON Schema Generator currently for the draft-04 spec
 
 ## Motivations
